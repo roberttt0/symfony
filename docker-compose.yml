@@ -1,0 +1,50 @@
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./app:/var/www/app
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+
+  php:
+    container_name: php
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/var/www/app
+    working_dir: /var/www/app
+    environment:
+      DATABASE_URL: "postgresql://user:parola@postgres:5432/db?serverVersion=12.19 (Debian 12.19-1.pgdg120+1)&charset=utf8"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-parola}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-user}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+
+  adminer:
+    container_name: adminer
+    image: adminer:latest
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  database_data:
