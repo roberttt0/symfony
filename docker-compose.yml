@@ -27,11 +27,11 @@ services:
   postgres:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-db}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-parola}
       POSTGRES_USER: ${POSTGRES_USER:-user}
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-user}"]
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-db}", "-U", "${POSTGRES_USER:-user}"]
       timeout: 5s
       retries: 5
       start_period: 60s
